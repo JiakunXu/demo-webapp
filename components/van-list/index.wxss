@@ -1,0 +1,11 @@
+.loading, .finished-text, .error-text {
+  color: #B7BBC2;
+  font-size: 13px;
+  line-height: 50px;
+  text-align: center;
+}
+
+.placeholder {
+  height: 0;
+  pointer-events: none;
+}

@@ -1,0 +1,2 @@
+<!--components/date-format/index.wxml-->
+<text>{{ dateTime }}</text>

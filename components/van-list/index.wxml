@@ -1,0 +1,7 @@
+<view class="container">
+  <slot></slot>
+  <view wx:if="{{ loading || false }}" class="loading">
+    <van-loading size="16">{{ loadingText || '加载中...' }}</van-loading>
+  </view>
+  <view wx:if="{{ finished || false }}" class="finished-text">{{ finishedText || '没有更多了' }}</view>
+</view>
