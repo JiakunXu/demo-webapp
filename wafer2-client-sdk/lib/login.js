@@ -138,7 +138,7 @@ function loginWithCode (opts) {
                 success (result) {
                     const data = result.data;
     
-                    if (!data || data.code !== 200) {
+                    if (data && data.code !== 200) {
                         wx.showModal({
                           title: '温馨提示',
                           content: data.msg,
