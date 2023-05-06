@@ -193,24 +193,33 @@ function loginWithCode (opts) {
             // 请求服务器登录地址，获得会话信息
             wx.request({
                 url: opts.loginUrl,
+                data: opts.data,
                 header: header,
                 method: "POST",
                 success (result) {
                     const data = result.data;
+                    const code = data.code || 200;
+                    const msg = data.msg;
     
-                    if (!data || data.code !== 0 || !data.data || !data.data.skey) {
+                    if (code === 500) {
+                        wx.showModal({
+                            title: '温馨提示',
+                            content: msg,
+                            showCancel: false
+                        });
+                        return opts.fail(data)
+                    } else if (code !== 200) {
+                        wx.showModal({
+                            title: '温馨提示',
+                            content: msg,
+                            showCancel: false
+                        });
                         return opts.fail(data)
                     }
     
-                    const res = data.data
-    
-                    if (!res || !res.userinfo) {
-                        return opts.fail(new Error(`登录失败(${data.error})：${data.message}`))
-                    }
-    
                     // 成功地响应会话信息
-                    Session.set(res)
-                    opts.success(res)
+                    Session.set(data)
+                    opts.success(data)
                 },
                 fail (err) {
                     console.error('登录失败，可能是网络错误或者服务器发生异常')
@@ -328,32 +337,52 @@ function request(options) {
         var session = Session.get();
     
         if (session) {
-            authHeader = buildAuthHeader(session.skey);
+            authHeader = buildAuthHeader(session.token);
         }
 
         wx.request(utils.extend({}, options, {
             header: utils.extend({}, originHeader, authHeader),
 
             success: function (response) {
-                var data = response.data;
+                var data = response.data;                
+                const code = data.code || 200;
+                const msg = data.msg;
 
-                var error, message;
-                if ((data && (data.code === -1 || data.code == 20001)) || response.statusCode === 401) {
+                if (code == 401) {
                     Session.clear();
-                    // 如果是登录态无效，并且还没重试过，会尝试登录后刷新凭据重新请求
-                    if (!hasRetried) {
-                        hasRetried = true;
-                        doRequestWithLogin();
-                        return;
-                    }
-
-                    message = '登录态已过期';
-                    error = new RequestError(data.error, message);
-
-                    callFail(error);
+                    wx.showModal({
+                        title: '系统提示',
+                        content: '登录状态已过期，您可以继续留在该页面，或者重新登录',
+                        cancelText: '取消',
+                        confirmText: '重新登录',
+                        success (res) {
+                        if (res.confirm) {
+                            wx.navigateTo({
+                            url: '/pages/login/login',
+                            })
+                        }
+                        }
+                    });
+                    callFail(data);
+                    return;
+                } else if (code === 500) {
+                    wx.showModal({
+                        title: '温馨提示',
+                        content: msg,
+                        showCancel: false
+                    });
+                    callFail(data);
+                    return;
+                } else if (code !== 200) {
+                    wx.showModal({
+                        title: '温馨提示',
+                        content: msg,
+                        showCancel: false
+                    });
+                    callFail(data);
                     return;
                 } else {
-                    callSuccess.apply(null, arguments);
+                    callSuccess(data);
                 }
             },
 
