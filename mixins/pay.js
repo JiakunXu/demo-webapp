@@ -17,13 +17,13 @@ module.exports = Behavior({
           tradeNo
         },
         method: 'POST',
-        success: (result) => {
-          if (result.data.code == 200) {
-            this.requestPayment(JSON.parse(result.data.data), callback);
+        success: (res) => {
+          if (res.data.code == 200) {
+            this.requestPayment(JSON.parse(res.data), callback);
           } else {
             wx.showModal({
               title: '温馨提示',
-              content: result.data.msg,
+              content: res.data.msg,
               showCancel: false
             });
           }
